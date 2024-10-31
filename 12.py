@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-
 # Enhanced Hyperoperations
 # Enhanced Hyperoperations with better stabilization
 class Hyperoperations:
@@ -297,29 +296,41 @@ def load_mnist_data(batch_size=64):
 
 
 def load_fashion_mnist_data(batch_size=64):
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.2860,), (0.3530,))  # Fashion-MNIST specific normalization
-    ])
+    transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize(
+                (0.2860,), (0.3530,)
+            ),  # Fashion-MNIST specific normalization
+        ]
+    )
 
     train_dataset = datasets.FashionMNIST(
         "./data", train=True, download=True, transform=transform
     )
-    test_dataset = datasets.FashionMNIST(
-        "./data", train=False, transform=transform
-    )
+    test_dataset = datasets.FashionMNIST("./data", train=False, transform=transform)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
     return train_loader, test_loader
 
+
 # Helper function to get Fashion-MNIST class names
 def get_fashion_mnist_labels():
     return [
-        'T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
-        'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot'
+        "T-shirt/top",
+        "Trouser",
+        "Pullover",
+        "Dress",
+        "Coat",
+        "Sandal",
+        "Shirt",
+        "Sneaker",
+        "Bag",
+        "Ankle boot",
     ]
+
 
 # Updated training function with class names
 def train(model, device, train_loader, optimizer, epoch, scheduler=None):
@@ -356,6 +367,7 @@ def train(model, device, train_loader, optimizer, epoch, scheduler=None):
     accuracy = 100.0 * correct / total
     avg_loss = total_loss / len(train_loader)
     return avg_loss, accuracy
+
 
 # Updated testing function with confusion matrix
 def test(model, device, test_loader):
@@ -397,8 +409,16 @@ def test(model, device, test_loader):
 
     return test_loss, accuracy, confusion_matrix.cpu().numpy()
 
+
 # Updated plotting function to include confusion matrix
-def plot_results(run_name, train_losses, test_losses, train_accuracies, test_accuracies, confusion_matrix=None):
+def plot_results(
+    run_name,
+    train_losses,
+    test_losses,
+    train_accuracies,
+    test_accuracies,
+    confusion_matrix=None,
+):
     plt.figure(figsize=(15, 5))
     plt.suptitle(f"Results for {run_name}")
 
@@ -421,17 +441,18 @@ def plot_results(run_name, train_losses, test_losses, train_accuracies, test_acc
     if confusion_matrix is not None:
         plt.subplot(1, 3, 3)
         class_names = get_fashion_mnist_labels()
-        plt.imshow(confusion_matrix, interpolation='nearest', cmap=plt.cm.Blues)
-        plt.title('Confusion Matrix')
+        plt.imshow(confusion_matrix, interpolation="nearest", cmap=plt.cm.Blues)
+        plt.title("Confusion Matrix")
         plt.colorbar()
         tick_marks = np.arange(len(class_names))
-        plt.xticks(tick_marks, class_names, rotation=45, ha='right')
+        plt.xticks(tick_marks, class_names, rotation=45, ha="right")
         plt.yticks(tick_marks, class_names)
-        plt.ylabel('True label')
-        plt.xlabel('Predicted label')
+        plt.ylabel("True label")
+        plt.xlabel("Predicted label")
 
     plt.tight_layout()
     plt.show()
+
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -442,49 +463,43 @@ def main():
     configs = [
         {
             "name": "RMSprop-Base",
-            "hypertensor_config": [
-                {"size": 256, "order": 3, "activation": "gelu"}
-            ],
+            "hypertensor_config": [{"size": 256, "order": 3, "activation": "gelu"}],
             "fc_layers": [32],
             "optimizer_config": {
                 "lr": 0.001,
                 "alpha": 0.99,
                 "momentum": 0.0,
-                "weight_decay": 0.0
+                "weight_decay": 0.0,
             },
         },
         {
             "name": "RMSprop-Momentum",
-            "hypertensor_config": [
-                {"size": 256, "order": 3, "activation": "gelu"}
-            ],
+            "hypertensor_config": [{"size": 256, "order": 3, "activation": "gelu"}],
             "fc_layers": [64],
             "optimizer_config": {
                 "lr": 0.001,
                 "alpha": 0.99,
                 "momentum": 0.9,
-                "weight_decay": 0.0001
-            }
+                "weight_decay": 0.0001,
+            },
         },
         {
             "name": "RMSprop-Scheduled",
-            "hypertensor_config": [
-                {"size": 128, "order": 2, "activation": "gelu"}
-            ],
+            "hypertensor_config": [{"size": 128, "order": 2, "activation": "gelu"}],
             "fc_layers": [64],
             "optimizer_config": {
                 "lr": 0.002,
                 "alpha": 0.95,
                 "momentum": 0.9,
-                "weight_decay": 0.0001
+                "weight_decay": 0.0001,
             },
             "scheduler_config": {
                 "type": "OneCycleLR",
                 "max_lr": 0.002,
                 "pct_start": 0.3,
-                "anneal_strategy": "cos"
-            }
-        }
+                "anneal_strategy": "cos",
+            },
+        },
     ]
 
     # Load Fashion-MNIST data instead of MNIST
@@ -494,25 +509,24 @@ def main():
         print(f"\nTraining: {config['name']}")
 
         model = ConfigurableHypertensorNetwork(
-            hypertensor_config=config['hypertensor_config'],
-            fc_layers=config['fc_layers']
+            hypertensor_config=config["hypertensor_config"],
+            fc_layers=config["fc_layers"],
         ).to(device)
 
         optimizer = torch.optim.RMSprop(
-            model.parameters(),
-            **config['optimizer_config']
+            model.parameters(), **config["optimizer_config"]
         )
 
-        if 'scheduler_config' in config:
-            scheduler_config = config['scheduler_config']
-            if scheduler_config['type'] == 'OneCycleLR':
+        if "scheduler_config" in config:
+            scheduler_config = config["scheduler_config"]
+            if scheduler_config["type"] == "OneCycleLR":
                 scheduler = torch.optim.lr_scheduler.OneCycleLR(
                     optimizer,
-                    max_lr=scheduler_config['max_lr'],
+                    max_lr=scheduler_config["max_lr"],
                     epochs=epochs,
                     steps_per_epoch=len(train_loader),
-                    pct_start=scheduler_config['pct_start'],
-                    anneal_strategy=scheduler_config['anneal_strategy']
+                    pct_start=scheduler_config["pct_start"],
+                    anneal_strategy=scheduler_config["anneal_strategy"],
                 )
                 step_scheduler_batch = True
             else:
@@ -535,12 +549,18 @@ def main():
 
         for epoch in range(1, epochs + 1):
             train_loss, train_acc = train(
-                model, device, train_loader, optimizer, epoch,
-                scheduler if step_scheduler_batch else None
+                model,
+                device,
+                train_loader,
+                optimizer,
+                epoch,
+                scheduler if step_scheduler_batch else None,
             )
 
             test_loss, test_acc, confusion_matrix = test(model, device, test_loader)
-            final_confusion_matrix = confusion_matrix  # Save the last epoch's confusion matrix
+            final_confusion_matrix = (
+                confusion_matrix  # Save the last epoch's confusion matrix
+            )
 
             if not step_scheduler_batch:
                 scheduler.step(test_loss)
@@ -549,12 +569,12 @@ def main():
             train_accuracies.append(train_acc)
             test_losses.append(test_loss)
             test_accuracies.append(test_acc)
-            learning_rates.append(optimizer.param_groups[0]['lr'])
+            learning_rates.append(optimizer.param_groups[0]["lr"])
 
-            print(f'Epoch {epoch}:')
+            print(f"Epoch {epoch}:")
             print(f'  Learning Rate: {optimizer.param_groups[0]["lr"]:.6f}')
-            print(f'  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%')
-            print(f'  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.2f}%')
+            print(f"  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%")
+            print(f"  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.2f}%")
 
         # Plot results with confusion matrix
         plot_results(
@@ -563,9 +583,9 @@ def main():
             test_losses,
             train_accuracies,
             test_accuracies,
-            final_confusion_matrix
+            final_confusion_matrix,
         )
+
 
 if __name__ == "__main__":
     main()
-

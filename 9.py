@@ -55,11 +55,16 @@ class Hyperoperations:
         else:
             raise ValueError("Hyperoperation order must be 2, 3, or 4")
 
+
 # HypertensorLayer remains mostly the same...
 class HypertensorLayer(nn.Module):
     def __init__(
-        self, input_size, output_size, hyperoperation_order=2, activation=None,
-        use_residual=False
+        self,
+        input_size,
+        output_size,
+        hyperoperation_order=2,
+        activation=None,
+        use_residual=False,
     ):
         super(HypertensorLayer, self).__init__()
         self.input_size = input_size
@@ -114,19 +119,17 @@ class HypertensorLayer(nn.Module):
 
         return z
 
+
 # Enhanced configurable network
 class ConfigurableHypertensorNetwork(nn.Module):
     def __init__(
         self,
         input_shape=(28, 28),
         num_classes=10,
-        hypertensor_config=[
-            {"size": 128, "order": 2},
-            {"size": 64, "order": 3}
-        ],
+        hypertensor_config=[{"size": 128, "order": 2}, {"size": 64, "order": 3}],
         fc_layers=[128, 64],
         dropout_rate=0.3,
-        use_residual=True
+        use_residual=True,
     ):
         super(ConfigurableHypertensorNetwork, self).__init__()
 
@@ -143,7 +146,7 @@ class ConfigurableHypertensorNetwork(nn.Module):
                 output_size=config["size"],
                 hyperoperation_order=config["order"],
                 activation=F.relu,
-                use_residual=use_residual
+                use_residual=use_residual,
             )
             self.layers.append(layer)
             current_size = config["size"]
@@ -153,12 +156,14 @@ class ConfigurableHypertensorNetwork(nn.Module):
         prev_size = current_size
 
         for fc_size in fc_layers:
-            self.fc_layers.extend([
-                nn.Linear(prev_size, fc_size),
-                nn.BatchNorm1d(fc_size),
-                nn.ReLU(),
-                nn.Dropout(dropout_rate)
-            ])
+            self.fc_layers.extend(
+                [
+                    nn.Linear(prev_size, fc_size),
+                    nn.BatchNorm1d(fc_size),
+                    nn.ReLU(),
+                    nn.Dropout(dropout_rate),
+                ]
+            )
             prev_size = fc_size
 
         # Output layer
@@ -184,6 +189,7 @@ class ConfigurableHypertensorNetwork(nn.Module):
         # Output
         x = self.output_layer(x)
         return F.log_softmax(x, dim=1)
+
 
 # Training function
 def train(model, device, train_loader, optimizer, epoch):
@@ -216,6 +222,7 @@ def train(model, device, train_loader, optimizer, epoch):
     avg_loss = total_loss / len(train_loader)
     return avg_loss, accuracy
 
+
 # Data loading and preprocessing
 def load_mnist_data(batch_size=64):
     transform = transforms.Compose(
@@ -231,6 +238,7 @@ def load_mnist_data(batch_size=64):
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
     return train_loader, test_loader
+
 
 # Testing function
 def test(model, device, test_loader):
@@ -267,29 +275,24 @@ def main():
     # Define different network configurations to try
     configs = [
         {
-            "hypertensor_config": [
-                {"size": 128, "order": 2}
-            ],
+            "hypertensor_config": [{"size": 128, "order": 2}],
             "fc_layers": [64],
-            "name": "Single Hypertensor Layer"
+            "name": "Single Hypertensor Layer",
         },
         {
-            "hypertensor_config": [
-                {"size": 128, "order": 2},
-                {"size": 64, "order": 3}
-            ],
+            "hypertensor_config": [{"size": 128, "order": 2}, {"size": 64, "order": 3}],
             "fc_layers": [32],
-            "name": "Double Hypertensor Layer"
+            "name": "Double Hypertensor Layer",
         },
         {
             "hypertensor_config": [
                 {"size": 128, "order": 2},
                 {"size": 96, "order": 3},
-                {"size": 64, "order": 2}
+                {"size": 64, "order": 2},
             ],
             "fc_layers": [32],
-            "name": "Triple Hypertensor Layer"
-        }
+            "name": "Triple Hypertensor Layer",
+        },
     ]
 
     train_loader, test_loader = load_mnist_data(batch_size)
@@ -298,8 +301,8 @@ def main():
         print(f"\nTraining network: {config['name']}")
 
         model = ConfigurableHypertensorNetwork(
-            hypertensor_config=config['hypertensor_config'],
-            fc_layers=config['fc_layers']
+            hypertensor_config=config["hypertensor_config"],
+            fc_layers=config["fc_layers"],
         ).to(device)
 
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -344,6 +347,7 @@ def main():
 
         plt.tight_layout()
         plt.show()
+
 
 if __name__ == "__main__":
     main()

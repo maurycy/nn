@@ -10,6 +10,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 import pandas as pd
 from pathlib import Path
 
+
 # Enhanced Hyperoperations
 # Enhanced Hyperoperations with better stabilization
 class Hyperoperations:
@@ -281,7 +282,6 @@ class ConfigurableHypertensorNetwork(nn.Module):
         return F.log_softmax(x, dim=1)
 
 
-
 # Enhanced version with improvements
 class ImprovedConfigurableHypertensorNetwork(nn.Module):
     def __init__(
@@ -290,11 +290,15 @@ class ImprovedConfigurableHypertensorNetwork(nn.Module):
         num_classes=10,
         hypertensor_config=[
             {"size": 256, "order": 2, "activation": "gelu"},  # Increased capacity
-            {"size": 128, "order": 2, "activation": "swish"}  # Added second hypertensor layer
+            {
+                "size": 128,
+                "order": 2,
+                "activation": "swish",
+            },  # Added second hypertensor layer
         ],
         fc_layers=[128, 64],
         dropout_rate=0.4,  # Increased dropout
-        use_residual=True
+        use_residual=True,
     ):
         super(ImprovedConfigurableHypertensorNetwork, self).__init__()
 
@@ -306,7 +310,7 @@ class ImprovedConfigurableHypertensorNetwork(nn.Module):
             nn.Conv2d(32, 32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
             nn.GELU(),
-            nn.MaxPool2d(2)
+            nn.MaxPool2d(2),
         )
 
         # Flatten layer
@@ -328,7 +332,7 @@ class ImprovedConfigurableHypertensorNetwork(nn.Module):
                 output_size=config["size"],
                 hyperoperation_order=config["order"],
                 activation=config.get("activation", "gelu"),
-                use_residual=use_residual
+                use_residual=use_residual,
             )
             self.layers.append(layer)
             current_size = config["size"]
@@ -338,12 +342,14 @@ class ImprovedConfigurableHypertensorNetwork(nn.Module):
         prev_size = current_size
 
         for fc_size in fc_layers:
-            block = nn.ModuleList([
-                nn.Linear(prev_size, fc_size),
-                nn.LayerNorm(fc_size),  # Changed to LayerNorm
-                nn.GELU(),
-                nn.Dropout(dropout_rate)
-            ])
+            block = nn.ModuleList(
+                [
+                    nn.Linear(prev_size, fc_size),
+                    nn.LayerNorm(fc_size),  # Changed to LayerNorm
+                    nn.GELU(),
+                    nn.Dropout(dropout_rate),
+                ]
+            )
             self.fc_layers.append(block)
             prev_size = fc_size
 
@@ -355,7 +361,7 @@ class ImprovedConfigurableHypertensorNetwork(nn.Module):
 
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
-            nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
+            nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
             if module.bias is not None:
                 nn.init.zeros_(module.bias)
 
@@ -381,8 +387,11 @@ class ImprovedConfigurableHypertensorNetwork(nn.Module):
         x = self.output_layer(x)
         return F.log_softmax(x, dim=1)
 
+
 # Improved training function with mixup augmentation
-def train_with_mixup(model, device, train_loader, optimizer, epoch, scheduler=None, alpha=0.2):
+def train_with_mixup(
+    model, device, train_loader, optimizer, epoch, scheduler=None, alpha=0.2
+):
     model.train()
     total_loss = 0
     correct = 0
@@ -400,7 +409,9 @@ def train_with_mixup(model, device, train_loader, optimizer, epoch, scheduler=No
             optimizer.zero_grad()
             output = model(mixed_data)
 
-            loss = lam * F.nll_loss(output, target) + (1 - lam) * F.nll_loss(output, target[index])
+            loss = lam * F.nll_loss(output, target) + (1 - lam) * F.nll_loss(
+                output, target[index]
+            )
         else:
             optimizer.zero_grad()
             output = model(data)
@@ -413,7 +424,9 @@ def train_with_mixup(model, device, train_loader, optimizer, epoch, scheduler=No
 
         optimizer.step()
 
-        if scheduler is not None and isinstance(scheduler, torch.optim.lr_scheduler.OneCycleLR):
+        if scheduler is not None and isinstance(
+            scheduler, torch.optim.lr_scheduler.OneCycleLR
+        ):
             scheduler.step()
 
         total_loss += loss.item()
@@ -432,55 +445,50 @@ def train_with_mixup(model, device, train_loader, optimizer, epoch, scheduler=No
     avg_loss = total_loss / len(train_loader)
     return avg_loss, accuracy
 
+
 def get_improved_training_config():
     return {
         "name": "Improved-Model",
         "model_config": {
             "hypertensor_config": [
                 {"size": 256, "order": 2, "activation": "gelu"},
-                {"size": 128, "order": 2, "activation": "swish"}
+                {"size": 128, "order": 2, "activation": "swish"},
             ],
             "fc_layers": [128, 64],
             "dropout_rate": 0.4,
-            "use_residual": True
+            "use_residual": True,
         },
-        "optimizer_config": {
-            "lr": 0.001,
-            "weight_decay": 0.01,
-            "betas": (0.9, 0.999)
-        },
+        "optimizer_config": {"lr": 0.001, "weight_decay": 0.01, "betas": (0.9, 0.999)},
         "scheduler_config": {  # Removed 'type' parameter
             "max_lr": 0.003,
             "pct_start": 0.3,
             "div_factor": 10.0,
             "final_div_factor": 1000.0,
-            "anneal_strategy": "cos"
+            "anneal_strategy": "cos",
         },
-        "training_config": {
-            "batch_size": 128,
-            "epochs": 30,
-            "mixup_alpha": 0.2
-        }
+        "training_config": {"batch_size": 128, "epochs": 30, "mixup_alpha": 0.2},
     }
+
 
 def load_fashion_mnist_data(batch_size=128, use_weighted_sampler=True):
     """
     Enhanced data loading with augmentation and weighted sampling
     """
     # Training augmentation
-    train_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),
-        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-        transforms.ToTensor(),
-        transforms.Normalize((0.2860,), (0.3530,))
-    ])
+    train_transform = transforms.Compose(
+        [
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomRotation(10),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.2860,), (0.3530,)),
+        ]
+    )
 
     # Test transform without augmentation
-    test_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.2860,), (0.3530,))
-    ])
+    test_transform = transforms.Compose(
+        [transforms.ToTensor(), transforms.Normalize((0.2860,), (0.3530,))]
+    )
 
     # Load datasets
     train_dataset = datasets.FashionMNIST(
@@ -494,19 +502,21 @@ def load_fashion_mnist_data(batch_size=128, use_weighted_sampler=True):
     if use_weighted_sampler:
         targets = train_dataset.targets
         class_counts = torch.bincount(targets)
-        weights = 1. / class_counts.float()
+        weights = 1.0 / class_counts.float()
         sample_weights = weights[targets]
         sampler = WeightedRandomSampler(sample_weights, len(sample_weights))
-        train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                                sampler=sampler, num_workers=4)
+        train_loader = DataLoader(
+            train_dataset, batch_size=batch_size, sampler=sampler, num_workers=4
+        )
     else:
-        train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                                shuffle=True, num_workers=4)
+        train_loader = DataLoader(
+            train_dataset, batch_size=batch_size, shuffle=True, num_workers=4
+        )
 
-    test_loader = DataLoader(test_dataset, batch_size=batch_size,
-                           num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=4)
 
     return train_loader, test_loader
+
 
 def test_and_analyze(model, device, test_loader, epoch, save_dir=None):
     """
@@ -523,7 +533,7 @@ def test_and_analyze(model, device, test_loader, epoch, save_dir=None):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()
+            test_loss += F.nll_loss(output, target, reduction="sum").item()
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -531,12 +541,12 @@ def test_and_analyze(model, device, test_loader, epoch, save_dir=None):
             true_labels.extend(target.cpu().numpy())
 
     test_loss /= len(test_loader.dataset)
-    accuracy = 100. * correct / len(test_loader.dataset)
+    accuracy = 100.0 * correct / len(test_loader.dataset)
 
     # Generate classification report
-    report = classification_report(true_labels, predictions,
-                                 target_names=class_names,
-                                 output_dict=True)
+    report = classification_report(
+        true_labels, predictions, target_names=class_names, output_dict=True
+    )
 
     # Create confusion matrix
     cm = confusion_matrix(true_labels, predictions)
@@ -548,24 +558,38 @@ def test_and_analyze(model, device, test_loader, epoch, save_dir=None):
 
         # Save confusion matrix plot
         plt.figure(figsize=(10, 8))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-                   xticklabels=class_names,
-                   yticklabels=class_names)
-        plt.title(f'Confusion Matrix - Epoch {epoch}')
-        plt.ylabel('True Label')
-        plt.xlabel('Predicted Label')
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            xticklabels=class_names,
+            yticklabels=class_names,
+        )
+        plt.title(f"Confusion Matrix - Epoch {epoch}")
+        plt.ylabel("True Label")
+        plt.xlabel("Predicted Label")
         plt.tight_layout()
-        plt.savefig(save_dir / f'confusion_matrix_epoch_{epoch}.png')
+        plt.savefig(save_dir / f"confusion_matrix_epoch_{epoch}.png")
         plt.close()
 
         # Save classification report
         df_report = pd.DataFrame(report).transpose()
-        df_report.to_csv(save_dir / f'classification_report_epoch_{epoch}.csv')
+        df_report.to_csv(save_dir / f"classification_report_epoch_{epoch}.csv")
 
     return test_loss, accuracy, report, cm
 
-def train_one_epoch(model, device, train_loader, optimizer, epoch,
-                   scheduler=None, mixup_alpha=0.2, clip_grad_norm=1.0):
+
+def train_one_epoch(
+    model,
+    device,
+    train_loader,
+    optimizer,
+    epoch,
+    scheduler=None,
+    mixup_alpha=0.2,
+    clip_grad_norm=1.0,
+):
     """
     Enhanced training function for a single epoch
     """
@@ -587,8 +611,9 @@ def train_one_epoch(model, device, train_loader, optimizer, epoch,
             optimizer.zero_grad()
             output = model(mixed_data)
 
-            loss = lam * F.nll_loss(output, mixed_target_a) + \
-                   (1 - lam) * F.nll_loss(output, mixed_target_b)
+            loss = lam * F.nll_loss(output, mixed_target_a) + (1 - lam) * F.nll_loss(
+                output, mixed_target_b
+            )
         else:
             optimizer.zero_grad()
             output = model(data)
@@ -612,14 +637,17 @@ def train_one_epoch(model, device, train_loader, optimizer, epoch,
         total += len(data)
 
         if batch_idx % 100 == 0:
-            print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} '
-                  f'({100. * batch_idx / len(train_loader):.0f}%)]\t'
-                  f'Loss: {loss.item():.6f}\t'
-                  f'LR: {optimizer.param_groups[0]["lr"]:.6f}')
+            print(
+                f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} '
+                f'({100. * batch_idx / len(train_loader):.0f}%)]\t'
+                f'Loss: {loss.item():.6f}\t'
+                f'LR: {optimizer.param_groups[0]["lr"]:.6f}'
+            )
 
-    accuracy = 100. * correct / total
+    accuracy = 100.0 * correct / total
     avg_loss = total_loss / len(train_loader)
     return avg_loss, accuracy
+
 
 def main():
     # Set up configuration
@@ -637,48 +665,54 @@ def main():
 
     # Load data
     train_loader, test_loader = load_fashion_mnist_data(
-        batch_size=config['training_config']['batch_size'],
-        use_weighted_sampler=True
+        batch_size=config["training_config"]["batch_size"], use_weighted_sampler=True
     )
 
     # Initialize model
-    model = ImprovedConfigurableHypertensorNetwork(**config['model_config']).to(device)
+    model = ImprovedConfigurableHypertensorNetwork(**config["model_config"]).to(device)
 
     # Initialize optimizer
     optimizer = torch.optim.AdamW(
         model.parameters(),
-        lr=config['optimizer_config']['lr'],
-        weight_decay=config['optimizer_config']['weight_decay'],
-        betas=config['optimizer_config']['betas']
+        lr=config["optimizer_config"]["lr"],
+        weight_decay=config["optimizer_config"]["weight_decay"],
+        betas=config["optimizer_config"]["betas"],
     )
 
     # Initialize scheduler - fixed initialization
     scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer,
-        max_lr=config['scheduler_config']['max_lr'],
-        epochs=config['training_config']['epochs'],
+        max_lr=config["scheduler_config"]["max_lr"],
+        epochs=config["training_config"]["epochs"],
         steps_per_epoch=len(train_loader),
-        pct_start=config['scheduler_config']['pct_start'],
-        div_factor=config['scheduler_config']['div_factor'],
-        final_div_factor=config['scheduler_config']['final_div_factor'],
-        anneal_strategy=config['scheduler_config']['anneal_strategy']
+        pct_start=config["scheduler_config"]["pct_start"],
+        div_factor=config["scheduler_config"]["div_factor"],
+        final_div_factor=config["scheduler_config"]["final_div_factor"],
+        anneal_strategy=config["scheduler_config"]["anneal_strategy"],
     )
 
     # Training history
     history = {
-        'train_loss': [], 'train_acc': [],
-        'test_loss': [], 'test_acc': [],
-        'learning_rates': []
+        "train_loss": [],
+        "train_acc": [],
+        "test_loss": [],
+        "test_acc": [],
+        "learning_rates": [],
     }
 
     best_test_acc = 0
 
     # Training loop
-    for epoch in range(1, config['training_config']['epochs'] + 1):
+    for epoch in range(1, config["training_config"]["epochs"] + 1):
         # Train
         train_loss, train_acc = train_one_epoch(
-            model, device, train_loader, optimizer, epoch,
-            scheduler, config['training_config']['mixup_alpha']
+            model,
+            device,
+            train_loader,
+            optimizer,
+            epoch,
+            scheduler,
+            config["training_config"]["mixup_alpha"],
         )
 
         # Test and analyze
@@ -687,28 +721,31 @@ def main():
         )
 
         # Update history
-        history['train_loss'].append(train_loss)
-        history['train_acc'].append(train_acc)
-        history['test_loss'].append(test_loss)
-        history['test_acc'].append(test_acc)
-        history['learning_rates'].append(optimizer.param_groups[0]['lr'])
+        history["train_loss"].append(train_loss)
+        history["train_acc"].append(train_acc)
+        history["test_loss"].append(test_loss)
+        history["test_acc"].append(test_acc)
+        history["learning_rates"].append(optimizer.param_groups[0]["lr"])
 
         # Save best model
         if test_acc > best_test_acc:
             best_test_acc = test_acc
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'scheduler_state_dict': scheduler.state_dict(),
-                'test_acc': test_acc,
-            }, save_dir / 'best_model.pth')
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "scheduler_state_dict": scheduler.state_dict(),
+                    "test_acc": test_acc,
+                },
+                save_dir / "best_model.pth",
+            )
 
         # Print epoch results
-        print(f'Epoch {epoch}:')
+        print(f"Epoch {epoch}:")
         print(f'  Learning Rate: {optimizer.param_groups[0]["lr"]:.6f}')
-        print(f'  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%')
-        print(f'  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.2f}%')
+        print(f"  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%")
+        print(f"  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.2f}%")
 
         # Step epoch-based scheduler if used
         if scheduler and not isinstance(scheduler, torch.optim.lr_scheduler.OneCycleLR):
@@ -719,6 +756,7 @@ def main():
 
     return model, history
 
+
 def plot_training_results(history, save_dir):
     """
     Plot and save training results
@@ -727,33 +765,34 @@ def plot_training_results(history, save_dir):
 
     # Plot loss
     plt.subplot(1, 3, 1)
-    plt.plot(history['train_loss'], label='Train Loss')
-    plt.plot(history['test_loss'], label='Test Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Training and Test Loss')
+    plt.plot(history["train_loss"], label="Train Loss")
+    plt.plot(history["test_loss"], label="Test Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Training and Test Loss")
     plt.legend()
 
     # Plot accuracy
     plt.subplot(1, 3, 2)
-    plt.plot(history['train_acc'], label='Train Accuracy')
-    plt.plot(history['test_acc'], label='Test Accuracy')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy (%)')
-    plt.title('Training and Test Accuracy')
+    plt.plot(history["train_acc"], label="Train Accuracy")
+    plt.plot(history["test_acc"], label="Test Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy (%)")
+    plt.title("Training and Test Accuracy")
     plt.legend()
 
     # Plot learning rate
     plt.subplot(1, 3, 3)
-    plt.plot(history['learning_rates'], label='Learning Rate')
-    plt.xlabel('Epoch')
-    plt.ylabel('Learning Rate')
-    plt.title('Learning Rate Schedule')
+    plt.plot(history["learning_rates"], label="Learning Rate")
+    plt.xlabel("Epoch")
+    plt.ylabel("Learning Rate")
+    plt.title("Learning Rate Schedule")
     plt.legend()
 
     plt.tight_layout()
-    plt.savefig(save_dir / 'training_results.png')
+    plt.savefig(save_dir / "training_results.png")
     plt.close()
+
 
 if __name__ == "__main__":
     main()

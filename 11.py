@@ -331,6 +331,7 @@ def train(model, device, train_loader, optimizer, epoch, scheduler=None):
     avg_loss = total_loss / len(train_loader)
     return avg_loss, accuracy
 
+
 # Testing function
 def test(model, device, test_loader):
     model.eval()
@@ -415,15 +416,13 @@ def main():
     configs = [
         {
             "name": "RMSprop-Base",
-            "hypertensor_config": [
-                {"size": 128, "order": 2, "activation": "gelu"}
-            ],
+            "hypertensor_config": [{"size": 128, "order": 2, "activation": "gelu"}],
             "fc_layers": [32],
             "optimizer_config": {
                 "lr": 0.001,
                 "alpha": 0.99,  # RMSprop smoothing constant
                 "momentum": 0.0,
-                "weight_decay": 0.0
+                "weight_decay": 0.0,
             },
             # "optimizer_config": {
             #     "lr": 0.001,  # Keep original learning rate
@@ -435,36 +434,32 @@ def main():
         },
         {
             "name": "RMSprop-Momentum",
-            "hypertensor_config": [
-                {"size": 128, "order": 2, "activation": "gelu"}
-            ],
+            "hypertensor_config": [{"size": 128, "order": 2, "activation": "gelu"}],
             "fc_layers": [64],
             "optimizer_config": {
                 "lr": 0.001,
                 "alpha": 0.99,
                 "momentum": 0.9,  # Added momentum
-                "weight_decay": 0.0001  # Light regularization
-            }
+                "weight_decay": 0.0001,  # Light regularization
+            },
         },
         {
             "name": "RMSprop-Scheduled",
-            "hypertensor_config": [
-                {"size": 128, "order": 2, "activation": "gelu"}
-            ],
+            "hypertensor_config": [{"size": 128, "order": 2, "activation": "gelu"}],
             "fc_layers": [64],
             "optimizer_config": {
                 "lr": 0.002,  # Higher initial LR
                 "alpha": 0.95,  # More aggressive moving average
                 "momentum": 0.9,
-                "weight_decay": 0.0001
+                "weight_decay": 0.0001,
             },
             "scheduler_config": {
                 "type": "OneCycleLR",
                 "max_lr": 0.002,
                 "pct_start": 0.3,  # Warm up for 30% of training
-                "anneal_strategy": "cos"
-            }
-        }
+                "anneal_strategy": "cos",
+            },
+        },
     ]
 
     train_loader, test_loader = load_mnist_data(batch_size)
@@ -473,26 +468,25 @@ def main():
         print(f"\nTraining: {config['name']}")
 
         model = ConfigurableHypertensorNetwork(
-            hypertensor_config=config['hypertensor_config'],
-            fc_layers=config['fc_layers']
+            hypertensor_config=config["hypertensor_config"],
+            fc_layers=config["fc_layers"],
         ).to(device)
 
         optimizer = torch.optim.RMSprop(
-            model.parameters(),
-            **config['optimizer_config']
+            model.parameters(), **config["optimizer_config"]
         )
 
         # Initialize scheduler if specified
-        if 'scheduler_config' in config:
-            scheduler_config = config['scheduler_config']
-            if scheduler_config['type'] == 'OneCycleLR':
+        if "scheduler_config" in config:
+            scheduler_config = config["scheduler_config"]
+            if scheduler_config["type"] == "OneCycleLR":
                 scheduler = torch.optim.lr_scheduler.OneCycleLR(
                     optimizer,
-                    max_lr=scheduler_config['max_lr'],
+                    max_lr=scheduler_config["max_lr"],
                     epochs=epochs,
                     steps_per_epoch=len(train_loader),
-                    pct_start=scheduler_config['pct_start'],
-                    anneal_strategy=scheduler_config['anneal_strategy']
+                    pct_start=scheduler_config["pct_start"],
+                    anneal_strategy=scheduler_config["anneal_strategy"],
                 )
                 step_scheduler_batch = True
             else:
@@ -517,8 +511,12 @@ def main():
         for epoch in range(1, epochs + 1):
             # Train
             train_loss, train_acc = train(
-                model, device, train_loader, optimizer, epoch,
-                scheduler if step_scheduler_batch else None
+                model,
+                device,
+                train_loader,
+                optimizer,
+                epoch,
+                scheduler if step_scheduler_batch else None,
             )
 
             # Test
@@ -533,41 +531,42 @@ def main():
             train_accuracies.append(train_acc)
             test_losses.append(test_loss)
             test_accuracies.append(test_acc)
-            learning_rates.append(optimizer.param_groups[0]['lr'])
+            learning_rates.append(optimizer.param_groups[0]["lr"])
 
-            print(f'Epoch {epoch}:')
+            print(f"Epoch {epoch}:")
             print(f'  Learning Rate: {optimizer.param_groups[0]["lr"]:.6f}')
-            print(f'  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%')
-            print(f'  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.2f}%')
+            print(f"  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%")
+            print(f"  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.2f}%")
 
         # Plot results including learning rate
         plt.figure(figsize=(15, 5))
         plt.subplot(1, 3, 1)
-        plt.plot(train_losses, label='Train Loss')
-        plt.plot(test_losses, label='Test Loss')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.title('Loss Curves')
+        plt.plot(train_losses, label="Train Loss")
+        plt.plot(test_losses, label="Test Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title("Loss Curves")
         plt.legend()
 
         plt.subplot(1, 3, 2)
-        plt.plot(train_accuracies, label='Train Acc')
-        plt.plot(test_accuracies, label='Test Acc')
-        plt.xlabel('Epoch')
-        plt.ylabel('Accuracy (%)')
-        plt.title('Accuracy Curves')
+        plt.plot(train_accuracies, label="Train Acc")
+        plt.plot(test_accuracies, label="Test Acc")
+        plt.xlabel("Epoch")
+        plt.ylabel("Accuracy (%)")
+        plt.title("Accuracy Curves")
         plt.legend()
 
         plt.subplot(1, 3, 3)
-        plt.plot(learning_rates, label='Learning Rate')
-        plt.xlabel('Epoch')
-        plt.ylabel('Learning Rate')
-        plt.title('Learning Rate Schedule')
+        plt.plot(learning_rates, label="Learning Rate")
+        plt.xlabel("Epoch")
+        plt.ylabel("Learning Rate")
+        plt.title("Learning Rate Schedule")
         plt.legend()
 
         plt.suptitle(f'Results for {config["name"]}')
         plt.tight_layout()
         plt.show()
+
 
 if __name__ == "__main__":
     main()

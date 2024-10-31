@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 def hyperoperation_power(base, exponent):
     return torch.pow(base, exponent)
+
 
 def hyperoperation_tetration(base, n):
     result = base
@@ -11,8 +13,11 @@ def hyperoperation_tetration(base, n):
         result = torch.pow(base, result)
     return result
 
+
 class HypertensorLayer(nn.Module):
-    def __init__(self, input_shape, output_size, hyperoperation_order=2, activation=None):
+    def __init__(
+        self, input_shape, output_size, hyperoperation_order=2, activation=None
+    ):
         super(HypertensorLayer, self).__init__()
         self.input_shape = input_shape
         self.output_size = output_size
@@ -47,6 +52,7 @@ class HypertensorLayer(nn.Module):
 
         return z
 
+
 class HypertensorNetwork(nn.Module):
     def __init__(self, input_shape, output_size):
         super(HypertensorNetwork, self).__init__()
@@ -54,7 +60,7 @@ class HypertensorNetwork(nn.Module):
             input_shape=input_shape,
             output_size=output_size,
             hyperoperation_order=2,
-            activation=F.relu
+            activation=F.relu,
         )
         self.linear_layer = nn.Linear(output_size, 1)
 
@@ -62,6 +68,7 @@ class HypertensorNetwork(nn.Module):
         x = self.hypertensor_layer(x)
         x = self.linear_layer(x)
         return x
+
 
 batch_size = 10
 n = 3
@@ -86,5 +93,4 @@ for epoch in range(num_epochs):
     loss.backward()
     optimizer.step()
 
-    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
-
+    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
